@@ -156,4 +156,19 @@ class Runner {
 
   }
 
+  /**
+   * Get the path to the project-specific configuration JSON file.
+   * Doesn't currently include lower limit domain as WP-CLI relies on
+   * wp-load.php to set limit. Need to decide what would be similar for D7/8.
+   *
+   * @todo Figure out how to determine limit for dir traversal
+   * @return string|false
+   */
+  public static function get_project_config_path() {
+    $config_files = array(
+      '.terminus'
+    );
+    return Utils\find_file_upward( $config_files, getcwd() );
+  }
+
 }

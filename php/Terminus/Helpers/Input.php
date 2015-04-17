@@ -4,8 +4,33 @@ namespace Terminus\Helpers;
 use \Terminus\User;
 use \Terminus\SiteFactory;
 use \Terminus\Products;
+use \Terminus\Runner;
 
 class Input {
+
+  static private $env;
+
+  /**
+   * Loads environment if found in .terminus
+   *
+   * @param $key string -- optional env key to search for
+   * @return false|object|string The env key if provided, else the environment object,
+   *   else false if no env found
+   */
+  static public function loadEnv($key = null) {
+    if( isset(self::$env) ) {
+      if( $key !== null && isset(self::$env->$key) ) {
+        return self::$env->$key;
+      }
+      return self::$env;
+    }
+    $file = Runner::get_project_config_path();
+    if ($file && ($env = json_decode( file_get_contents($file) )) !== null) {
+      self::$env = $env;
+      return self::loadEnv($key);
+    }
+    return false;
+  }
 
   static public function environment($existing, $default, $message) {
 
@@ -94,6 +119,10 @@ class Input {
   */
   public static function site( $args = array(), $key = 'site', $label = 'Choose site') {
       // early return if a valid site has been offered
+      // allow CL args to override env
+      if ( !isset($args[$key]) && self::loadEnv($key) ) {
+        $args[$key] = self::$env->$key;
+      }
       if ( isset($args[$key]) ) {
         if ( $site = SiteFactory::instance($args[$key]) ) {
           return $site->getName();
